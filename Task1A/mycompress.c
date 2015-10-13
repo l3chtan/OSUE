@@ -6,8 +6,8 @@ char* append(char* source, char c){
 	int len = strlen(source);
 	char * dest = (char*)malloc(len+2);
 	strcpy(dest,source);
-	dest[len+1] = c;
-	dest[len+2] = '\0';
+	dest[len] = c;
+	dest[len+1] = '\0';
 	free(source);
 	return dest;
 }
@@ -16,13 +16,14 @@ char* compress(char *line, char* buf){
 	int i = 0, cnt = 0;
 	char c = line[0];
 
-	buf = append(buf,line[0]);
+	buf = append(buf,c);
 	while(line[i] != '\0'){
 		if(line[i] == c){
 			cnt++;
 		} else {
 			buf = append(buf,cnt + '0');
 			buf = append(buf,line[i]);
+			cnt = 1;
 		c = line[i];
 		}
 		i++;
@@ -36,30 +37,42 @@ int read_input(FILE *stream, char *original_name){
 
 	int cnt_original = 0;
 	int cnt_comp = 0;
-	char *buf = (char *) malloc(81*sizeof(char*));
-	char *new_buf = (char *) malloc(sizeof(char*));
+	char *buf = (char *) malloc(81);
+	char *updated = malloc(81);
+	char *new_buf = (char *) malloc(1);
 	char  *comp;
 	FILE *output;
 
-	char *new_name = (char*) malloc((sizeof(buf) /sizeof(char))+5);
-	strcat(new_name, original_name);
-	strcat(new_name, ".comp");
 
+	fgets(updated,81,stream);
 	while(fgets(buf,81,stream)){
+
+		char *tmp = malloc(strlen(buf)+strlen(updated));
+
+		strcpy(tmp,updated);
+		strcat(tmp,buf);
+		free(updated);
+		updated = tmp;
+
 		if(buf[0] == EOF) break;
 		cnt_original += sizeof buf;
-		comp = compress(buf,new_buf);
 
 		cnt_comp += sizeof comp;
 
 
-		output = fopen(new_name,"a");
-		fprintf(output,"%s",comp);
-		fclose(output);
 		buf[0] = '\0';
 	}
+		new_buf = compress(updated,new_buf);
 
-	free(comp);
+	char *new_name = (char*) malloc((sizeof(buf) /sizeof(char))+5);
+	strcpy(new_name, original_name);
+	strcat(new_name, ".comp");
+
+	output = fopen(new_name,"w");
+
+	fputs(new_buf,output);
+	fclose(output);
+	free(new_buf);
 	free(buf);
 	printf("%s:\t\t%d Zeichen\n",original_name,cnt_original);
 	printf("%s.comp: %d Zeichen\n",original_name,cnt_comp);	
