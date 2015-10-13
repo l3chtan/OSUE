@@ -7,4 +7,4 @@ mycompress: mycompress.c
 	$(CC) $(CFLAGS) -o mycompress mycompress.c
 
 clean:
-	rm -rf mycompress
+	rm -rf mycompress *.comp

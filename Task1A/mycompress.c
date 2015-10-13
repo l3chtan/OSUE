@@ -2,29 +2,33 @@
 #include <stdlib.h>
 #include <string.h>
 
-char* compress(char *line){
-	/*int size = sizeof(line)/ sizeof(char);*/
-	int i = 1, j = 0, cnt = 1;
-	char *buf;
-	buf = (char *) malloc(81*sizeof(char*));
-		char c = line[0];
+char* append(char* source, char c){
+	int len = strlen(source);
+	char * dest = (char*)malloc(len+2);
+	strcpy(dest,source);
+	dest[len+1] = c;
+	dest[len+2] = '\0';
+	free(source);
+	return dest;
+}
 
-	buf[j] = line[0];
+char* compress(char *line, char* buf){
+	int i = 0, cnt = 0;
+	char c = line[0];
+
+	buf = append(buf,line[0]);
 	while(line[i] != '\0'){
 		if(line[i] == c){
 			cnt++;
 		} else {
-			j++;
-			buf[j] = cnt + '0';
-			cnt = 1;
-			j++;
-			buf[j] = line[i];
-			c = line[i];
+			buf = append(buf,cnt + '0');
+			buf = append(buf,line[i]);
+		c = line[i];
 		}
 		i++;
 	}
-	buf[++j] = '\0';
-		/*printf("%d\n",j);*/
+	buf = append(buf,cnt+'0');
+	buf = append(buf,c);
 	return buf;
 }
 
@@ -32,30 +36,31 @@ int read_input(FILE *stream, char *original_name){
 
 	int cnt_original = 0;
 	int cnt_comp = 0;
-	char *buf = (char *) malloc(81*sizeof(char));
+	char *buf = (char *) malloc(81*sizeof(char*));
+	char *new_buf = (char *) malloc(sizeof(char*));
+	char  *comp;
 	FILE *output;
 
+	char *new_name = (char*) malloc((sizeof(buf) /sizeof(char))+5);
+	strcat(new_name, original_name);
+	strcat(new_name, ".comp");
 
 	while(fgets(buf,81,stream)){
 		if(buf[0] == EOF) break;
 		cnt_original += sizeof buf;
-		buf = compress(buf);
+		comp = compress(buf,new_buf);
 
-		/*if(buf == NULL) return 1;*/
-		cnt_comp += sizeof buf;
+		cnt_comp += sizeof comp;
 
-		char *new_name = (char*) malloc((sizeof(buf) /sizeof(char))+5);
-		/*new_name[0] = '\0';*/
-		strcat(new_name,original_name);
-		strcat(new_name, ".comp");
 
 		output = fopen(new_name,"a");
-		fputs(buf,output);
+		fprintf(output,"%s",comp);
 		fclose(output);
 		buf[0] = '\0';
-
 	}
 
+	free(comp);
+	free(buf);
 	printf("%s:\t\t%d Zeichen\n",original_name,cnt_original);
 	printf("%s.comp: %d Zeichen\n",original_name,cnt_comp);	
 	return 0;
