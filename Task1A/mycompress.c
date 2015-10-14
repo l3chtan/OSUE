@@ -40,7 +40,6 @@ int read_input(FILE *stream, char *original_name){
 	char *buf = (char *) malloc(81);
 	char *updated = malloc(81);
 	char *new_buf = (char *) malloc(1);
-	char  *comp;
 	FILE *output;
 
 
@@ -55,16 +54,10 @@ int read_input(FILE *stream, char *original_name){
 		updated = tmp;
 
 		if(buf[0] == EOF) break;
-		cnt_original += sizeof buf;
-
-		cnt_comp += sizeof comp;
-
-
-		buf[0] = '\0';
 	}
 		new_buf = compress(updated,new_buf);
 
-	char *new_name = (char*) malloc((sizeof(buf) /sizeof(char))+5);
+	char *new_name = (char*) malloc(strlen(original_name)+5);
 	strcpy(new_name, original_name);
 	strcat(new_name, ".comp");
 
@@ -72,6 +65,7 @@ int read_input(FILE *stream, char *original_name){
 
 	fputs(new_buf,output);
 	fclose(output);
+	free(new_name);
 	free(new_buf);
 	free(buf);
 	printf("%s:\t\t%d Zeichen\n",original_name,cnt_original);
