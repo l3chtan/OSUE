@@ -3,6 +3,7 @@
 #include <string.h>
 
 #define MAX_LINE_LEN  80
+#define FILE_ENDING 5
 
 // char* append(char* source, char c){
 // 	char * tmp = realloc(source,strlen(source)+2);
@@ -20,18 +21,16 @@ char* compress(char *line){
 	char c = line[0];
 	char buffer[10];
 
-	buffer[0] = line[0];
 	if(dest == NULL) return NULL;
 	while(line[i] != '\0'){
 		if(line[i] == c){
 			cnt++;
 		} else {
 
-			cx = snprintf(buffer,10,"%d",cnt);
-			if(cx < 0 || cx > 10) return NULL;
+			buffer[0] = c;
 
-			strncat(buffer,&line[i],1);
-			if(buffer == NULL) return NULL;
+			cx = snprintf(buffer+1,10,"%d",cnt);
+			if(cx < 0 || cx > 10) return NULL;
 
 			int len = strlen(dest)+strlen(buffer);
 			char * t = realloc(dest,len);
@@ -48,11 +47,10 @@ char* compress(char *line){
 		}
 		i++;
 	}
-	cx = snprintf(buffer,10,"%d",cnt);
-	if(cx < 0 || cx > 10) return NULL;
+	buffer[0] = c;
 
-	strncat(buffer,&line[i],1);
-	if(buffer == NULL) return NULL;
+	cx = snprintf(buffer+1,10,"%d",cnt);
+	if(cx < 0 || cx > 10) return NULL;
 
 	int len = strlen(dest)+strlen(buffer);
 	char * t = realloc(dest,len);
@@ -84,50 +82,60 @@ char* read_input(FILE *stream){
 	return updated;
 }
 
-int main(int argc, char **argv){
-			int i = 0;
-			FILE *input, *output;
-			char *orig, *compr;
-			char *original_name;
+int print_result(char *original_name ,char *compr, size_t orig_len){
 
-	switch(argc){
-		case 1: 
-			printf("To compress the input enter Ctrl-D\n");
-			original_name = "Stdin";
-			if((orig = read_input(stdin) )== NULL){
-				return 1;
-			}
+	FILE *output;
 
-		default: 
-			for(i = 1; i<argc;++i){
-				input = fopen(argv[i],"r");
-
-				original_name = argv[i];
-				if((orig = read_input(input))== NULL){
-					return 1;
-				}
-				fclose(input);
-			}
-			break;
-	}
-
-	compr = compress(orig);
-	if(compr == NULL) return 1;
-
-	char *new_name = (char*) malloc(strlen(original_name)+5);
+	char new_name[strlen(original_name)+FILE_ENDING];
 	strcpy(new_name, original_name);
-	strcat(new_name, ".comp");
+	strncat(new_name, ".comp",FILE_ENDING);
 
 	output = fopen(new_name,"w");
 
 	fputs(compr,output);
 	fclose(output);
 
-	printf("%s:\t\t%d Zeichen\n",original_name,(int) strlen(orig));
+	printf("%s:\t\t%d Zeichen\n",original_name,(int) orig_len);
 	printf("%s.comp: \t%d Zeichen\n",original_name,(int) strlen(compr));	
 
-	free(orig);
 	free(compr);
-	free(new_name);
+
+	return 0;
+}
+
+int main(int argc, char **argv){
+			int i = 0;
+			FILE *input;
+			char *orig, *compr;
+
+	switch(argc){
+		case 1: 
+			printf("To compress the text enter Ctrl-D\n");
+			if((orig = read_input(stdin) )== NULL) return 1;
+
+			compr = compress(orig);
+			if(compr == NULL) return 1;
+
+
+			if(!print_result("Stdin",compr,strlen(orig))) return 1;
+			free(orig);
+
+		default: 
+			for(i = 1; i<argc;++i){
+				input = fopen(argv[i],"r");
+
+				if((orig = read_input(input))== NULL){
+					return 1;
+				}
+				fclose(input);
+
+				compr = compress(orig);
+				if(compr == NULL) return 1;
+
+				if(!print_result(argv[i],compr,strlen(orig))) return 1;
+				free(orig);
+			}
+			break;
+	}
 	return 0;
 }
