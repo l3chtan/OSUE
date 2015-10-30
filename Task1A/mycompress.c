@@ -4,78 +4,115 @@
 
 #define MAX_LINE_LEN  80
 
-char* append(char* source, char c){
-	char * tmp = realloc(source,strlen(source)+2);
-	if(tmp == NULL) return NULL;
-	source = tmp;
-	int len = strlen(source);
-	source[len] = c;
-	source[len+1] = '\0';
-	return source;
-}
+// char* append(char* source, char c){
+// 	char * tmp = realloc(source,strlen(source)+2);
+// 	if(tmp == NULL) return NULL;
+// 	source = tmp;
+// 	int len = strlen(source);
+// 	source[len] = c;
+// 	source[len+1] = '\0';
+// 	return source;
+// }
 
-char* compress(char *line, char* buf){
+char* compress(char *line){
 	char * dest = (char*)malloc(1);
-	int i = 0, cnt = 0, ret = 0;
+	int i = 0, cnt = 0, cx = 0;
 	char c = line[0];
+	char buffer[10];
 
-	dest = append(dest,c);
-	// if(ret != 0) return ret;
+	buffer[0] = line[0];
+	if(dest == NULL) return NULL;
 	while(line[i] != '\0'){
 		if(line[i] == c){
 			cnt++;
 		} else {
-			char *nums = (char*)malloc(10);
-			int j = 0;
-			while(cnt > 0){
-				nums[j] = cnt % 10;
-				nums[j] = nums[j] +48;
-				cnt = cnt/10;
-				j++;
-			}
-			nums[j] = '\0';
-			char * t = realloc(dest,strlen(dest)+strlen(nums));
+
+			cx = snprintf(buffer,10,"%d",cnt);
+			if(cx < 0 || cx > 10) return NULL;
+
+			strncat(buffer,&line[i],1);
+			if(buffer == NULL) return NULL;
+
+			int len = strlen(dest)+strlen(buffer);
+			char * t = realloc(dest,len);
 			if(t == NULL) return NULL;
+
 			dest = t;
-			strcat(dest,nums);
-			free(nums);
-			// dest = append(dest,cnt + '0');
-			// if(ret != 0) return ret;
-			dest = append(dest,line[i]);
-			// if(ret != 0) return ret;
+			strncat(dest,buffer,len);
+			if(dest == NULL) return NULL;
+
+			buffer[0] = '\0';
 			cnt = 1;
-		c = line[i];
+			cx = 0;
+			c = line[i];
 		}
 		i++;
 	}
-	dest = append(dest,cnt+'0');
-	// if(ret != 0) return ret;
-	dest = append(dest,c);
-	// if(ret != 0) return ret;
-	return dest;
+	cx = snprintf(buffer,10,"%d",cnt);
+	if(cx < 0 || cx > 10) return NULL;
+
+	strncat(buffer,&line[i],1);
+	if(buffer == NULL) return NULL;
+
+	int len = strlen(dest)+strlen(buffer);
+	char * t = realloc(dest,len);
+	if(t == NULL) return NULL;
+
+	strncat(t,buffer,len);
+	if(dest == NULL) return NULL;
+	return t;
 }
 
-int read_input(FILE *stream, char *original_name){
-	int ret = 0;
+char* read_input(FILE *stream){
 
 	char *buf = (char *) malloc(MAX_LINE_LEN+1);
 	char *updated = (char *) malloc(1);
-	char *new_buf = (char *) malloc(1);
-	FILE *output;
-
 
 	while(fgets(buf,MAX_LINE_LEN+1,stream)){
-		char * tmp = realloc(updated,strlen(updated)+strlen(buf)+1);
-		if(tmp == NULL){
-			return -1;
-		}
+		int len = strlen(updated)+strlen(buf);
+		char * tmp = realloc(updated,len+1);
+		if(tmp == NULL) return NULL;
+
 		updated = tmp;
-		strcat(updated,buf);
+		strncat(updated,buf,len);
 
 		if(buf[0] == EOF) break;
 	}
-	new_buf = compress(updated,new_buf);
-	// if(ret != 0) return ret;
+
+	free(buf);
+
+	return updated;
+}
+
+int main(int argc, char **argv){
+			int i = 0;
+			FILE *input, *output;
+			char *orig, *compr;
+			char *original_name;
+
+	switch(argc){
+		case 1: 
+			printf("To compress the input enter Ctrl-D\n");
+			original_name = "Stdin";
+			if((orig = read_input(stdin) )== NULL){
+				return 1;
+			}
+
+		default: 
+			for(i = 1; i<argc;++i){
+				input = fopen(argv[i],"r");
+
+				original_name = argv[i];
+				if((orig = read_input(input))== NULL){
+					return 1;
+				}
+				fclose(input);
+			}
+			break;
+	}
+
+	compr = compress(orig);
+	if(compr == NULL) return 1;
 
 	char *new_name = (char*) malloc(strlen(original_name)+5);
 	strcpy(new_name, original_name);
@@ -83,38 +120,14 @@ int read_input(FILE *stream, char *original_name){
 
 	output = fopen(new_name,"w");
 
-	fputs(new_buf,output);
+	fputs(compr,output);
 	fclose(output);
 
-	printf("%s:\t\t%d Zeichen\n",original_name,(int) strlen(updated));
-	printf("%s.comp: \t%d Zeichen\n",original_name,(int) strlen(new_buf));	
+	printf("%s:\t\t%d Zeichen\n",original_name,(int) strlen(orig));
+	printf("%s.comp: \t%d Zeichen\n",original_name,(int) strlen(compr));	
 
-	free(updated);
+	free(orig);
+	free(compr);
 	free(new_name);
-	free(new_buf);
-	free(buf);
-	return 0;
-}
-
-int main(int argc, char **argv){
-			int i = 0;
-			FILE *input;
-
-	switch(argc){
-		case 1: 
-			printf("To end the input press Ctrl-D\n");
-			return read_input(stdin, "Stdin");
-
-		default: 
-			for(i = 1; i<argc;++i){
-				input = fopen(argv[i],"r");
-
-				if(read_input(input,argv[i]) != 0){
-					return 1;
-				}
-				fclose(input);
-			}
-			break;
-	}
 	return 0;
 }
