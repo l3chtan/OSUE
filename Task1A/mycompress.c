@@ -5,18 +5,9 @@
 #define MAX_LINE_LEN  80
 #define FILE_ENDING 5
 
-// char* append(char* source, char c){
-// 	char * tmp = realloc(source,strlen(source)+2);
-// 	if(tmp == NULL) return NULL;
-// 	source = tmp;
-// 	int len = strlen(source);
-// 	source[len] = c;
-// 	source[len+1] = '\0';
-// 	return source;
-// }
-
 char* compress(char *line){
-	char * dest = (char*)malloc(1);
+	char *dest = malloc(1);
+	dest[0] = 0;
 	int i = 0, cnt = 0, cx = 0;
 	char c = line[0];
 	char buffer[10];
@@ -57,7 +48,7 @@ char* compress(char *line){
 	if(t == NULL) return NULL;
 
 	strncat(t,buffer,len);
-	if(dest == NULL) return NULL;
+	if(t == NULL) return NULL;
 	return t;
 }
 
