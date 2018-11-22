@@ -1,6 +1,5 @@
 /**
  * @file rventgas.c
- * @author Edward Toth 0725631
  * @date 22.11.2015
  * 
  * @brief A Program to simulate the ventilation of a nuclear reactor, to lower the pressure inside.
