@@ -1,6 +1,5 @@
 /**
  * @file schedule.c
- * @author Edward Toth 0725631
  * @date 22.11.2015
  *
  * @brief Main program for this task
